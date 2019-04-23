@@ -37,6 +37,8 @@ public class IdkMate implements BotAPI {
 
     public String getCommand(Plays possiblePlays) {
     	
+    	String command = "1";
+    	
     	this.getWinningProbability(me);
 
     	
@@ -45,8 +47,14 @@ public class IdkMate implements BotAPI {
     		map.put(play, getWeight(play));
     	}
     	
+    	String dDecision = getDoubleDecision();
     	
-    	return "1";
+    	if (dDecision == "double") {
+    		if (match.canDouble((Player) me))
+    			command = "double";
+    	}
+    	
+    	return command;
     
     	
     }
@@ -67,11 +75,11 @@ public class IdkMate implements BotAPI {
     		/* 2 points off: */
     		else if (ifTwoOffWinning()) {
     			if (getWinningProbability(me) < 0.50)
-    				decision = "n";
-    			else if (getWinningProbability(me) < 0.75)
-    				decision = "y";
-    			else
-    				decision = "y";
+    				decision = "n";    			
+    			else if (getWinningProbability(me) < 0.75 && getWinningProbability(me) >= 0.47)
+    				decision = "double";
+    			else if (getWinningProbability(me) >= 0.75)
+    				decision = "double";
     		}
     		
     		/* Repeated below code in the next 2 big logic statements but it will be changed. */
@@ -81,13 +89,15 @@ public class IdkMate implements BotAPI {
     			decision = "n";
     		/* winning prob is good and no gammon, double. */
     		else if (getWinningProbability(me) > 0.75 && getGammonChance(me) < 0.2)
-    			decision = "y";
+    			decision = "double";
 			/* winning prob is good and gammon chance is good, no double */
     		else if (getWinningProbability(me) > 0.66 && getGammonChance(me) >= 0.75)
-    			/** To Do */;
+    			decision = "n";
     		/* winning prob is good and no gammon, double. */
-    		else if (getWinningProbability(me) > 0 && getGammonChance(me) <= 0.66)
-    			/** To Do */;
+    		else if (getWinningProbability(me) > 0.75 && getGammonChance(me) <= 0.66)
+    			decision = "double";
+    		else if (getWinningProbability(me) > 0.85)
+    			decision = "double";
     	} 
     	
     	/**
@@ -105,9 +115,9 @@ public class IdkMate implements BotAPI {
     			else if (ifTwoOffWinning()) {
         			if (getWinningProbability(opponent) < 0.50)
         				decision = "y";
-        			else if (getWinningProbability(opponent) < 0.75)
+        			else if (getWinningProbability(me) < 0.75 && getWinningProbability(me) >= 0.50)
         				decision = "y";
-        			else
+        			else if (getWinningProbability(opponent) >= 0.75)
         				decision = "n";
         		}
     			
@@ -130,15 +140,15 @@ public class IdkMate implements BotAPI {
     		else {
     			/* 1 point off, post crawford: double */
     			if (me.getScore() + 1 == match.getLength())
-    				decision = "y";
+    				decision = "double";
     			/* 2 points off: */
     			else if (ifTwoOffWinning()) {
         			if (getWinningProbability(me) < 0.50)
         				decision = "n";
-        			else if (getWinningProbability(me) < 0.75)
-        				decision = "y";
-        			else
-        				decision = "y";
+        			else if (getWinningProbability(me) < 0.75 && getWinningProbability(me) >= 0.50)
+        				decision = "double";
+        			else if (getWinningProbability(me) >= 0.75)
+        				decision = "double";
         		}
     			
     			/* winning prob is good and gammon chance is good, no double */
@@ -146,17 +156,17 @@ public class IdkMate implements BotAPI {
         			decision = "n";
         		/* winning prob is good and no gammon, double. */
         		else if (getWinningProbability(me) > 0.75 && getGammonChance(me) < 0.2)
-        			decision = "y";
+        			decision = "double";
     			/* winning prob is good and gammon chance is good, no double */
         		else if (getWinningProbability(me) > 0.66 && getGammonChance(me) >= 0.75)
-        			decision = "y";
+        			decision = "double";
         		/* winning prob is good and no gammon, double. */
         		else if (getWinningProbability(me) > 0 && getGammonChance(me) <= 0.66)
         			decision = "n";
+    			System.out.println("dec6: " + decision);
     		}
     	}
-    	
-    	
+    	System.out.println("dec0: " + decision);
         return decision;
     }
     
@@ -200,7 +210,6 @@ public class IdkMate implements BotAPI {
     	else if (handicap == 2)
     		handicapMod = -0.1;   	
     	
-    	System.out.println("Mod: " + handicapMod);
     	probability = Math.abs((1 - ( getPipCount(thisPlayer) / 167 )  ) 
 				- ((pcDiff + 0.001) / (167 * 1.5)))
     			+ ((Math.pow(hbCheckersDiff,2) + 0.001) / 100)
@@ -212,8 +221,6 @@ public class IdkMate implements BotAPI {
     	
     	if (probability >= 1)
     		probability = 0.98;
-    	
-    	System.out.println(probability);
     	
     	return probability; 
     }
@@ -289,7 +296,7 @@ public class IdkMate implements BotAPI {
     }
     
     private boolean ifTwoOffWinning() {
-    	return (me.getScore() + 2 == match.getLength() && opponent.getScore() + 2 == match.getLength());
+    	return ((me.getScore() + 2) == match.getLength() && (opponent.getScore() + 2) == match.getLength());
     }
     
     

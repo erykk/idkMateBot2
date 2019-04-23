@@ -9,7 +9,7 @@ public class Backgammon {
 
     public static final int NUM_PLAYERS = 2;
     public static final boolean CHEAT_ALLOWED = false;
-    private static final int DELAY = 3000;  // in milliseconds
+    private static final int DELAY = 300;  // in milliseconds
     private static final String[] ALL_BOT_NAMES = {"Bot0","Bot1"};
 
     private final Cube cube = new Cube();
