@@ -112,7 +112,7 @@ public class IdkMate implements BotAPI {
     	
     	double blotMult = 0.0;
     	if (makesBlot(play))
-    		blotMult = -0.1;
+    		blotMult = -0.125;
     	
     	//less important features are exponentiated
     	
@@ -127,7 +127,7 @@ public class IdkMate implements BotAPI {
     	} else {    	
 	    	weight = (getDistanceTravelled(play) / 24) 
 	    			+ hitMult 
-	    			+ blotMult
+	    			+ (blotMult*1.5)
 	    			+ Math.pow(anchorMult,2) 
 	    			+ blockMult 
 	    			+ escapeMult

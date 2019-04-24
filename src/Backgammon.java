@@ -9,7 +9,7 @@ public class Backgammon {
 
     public static final int NUM_PLAYERS = 2;
     public static final boolean CHEAT_ALLOWED = false;
-    private static final int DELAY = 100;  // in milliseconds
+    private static final int DELAY = 10;  // in milliseconds
     private static final String[] ALL_BOT_NAMES = {"Bot0","Bot1"};
 
     private final Cube cube = new Cube();
@@ -25,7 +25,7 @@ public class Backgammon {
     private void setupBots (String[] args) {
         if (args.length < NUM_PLAYERS) {
             botNames[0] = "IdkMate";
-            botNames[1] = "Bot1";
+            botNames[1] = "Opponent";
         } else {
             for (int i = 0; i < NUM_PLAYERS; i++) {
                 boolean found = false;
