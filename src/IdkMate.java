@@ -37,18 +37,32 @@ public class IdkMate implements BotAPI {
     public String getName() {
         return "IdkMate"; // must match the class name
     }
+    
+    private class Duo {
+    	int id;
+    	Play play;
+    	
+    	Duo (int id, Play play) {
+    		this.id = id;
+    		this.play = play;
+    	}
+    }
 
     public String getCommand(Plays possiblePlays) {
     	
     	String command = "1";
+    	int counter = 0;
     	
     	this.getWinningProbability(me);
 
-    	
-    	Map <Play, Integer> map = new HashMap<>();
+    	Map <Duo, Double> thisMap = new HashMap<>();
     	for (Play play : possiblePlays) {
-    		map.put(play, getWeight(play));
+    		thisMap.put(new Duo(++counter,play), getWeight(play));
     	}
+    	
+    	Duo res = thisMap.entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
+    	command = Integer.toString(res.id);
+    	System.out.println(thisMap.get(res));
     	
     	String dDecision = getDoubleDecision();
     	
@@ -60,6 +74,149 @@ public class IdkMate implements BotAPI {
     	return command;
     
     	
+    }
+    
+    private double getWeight(Play play) {
+    	double weight = 0.0;
+    	
+    	//Hit Multiplier
+    	double hitMult = 0.0;
+    	if (doesHit(play) == 1)
+    		hitMult = 0.05;
+    	else if (doesHit(play) == 2)
+    		hitMult = 0.1;
+    	else if (doesHit(play) > 2)
+    		hitMult = 0.15;
+    		
+    	
+    	double blockMult = 0.0;
+    	if (makesBlock(play))
+    		blockMult = 0.1;
+    	
+    	double anchorMult = 0.0;
+    	if (removesAnchor(play))
+    		anchorMult = -0.1;
+    	
+    	double escapeMult = 0.0;
+    	if (escapeTrappedChecker(play))
+    		escapeMult = 0.1;
+    	
+    	double largeStackMult = 0.0;
+    	if (flagLargeMoves(play))
+    		largeStackMult = -0.1;
+    	
+    	double movesHBMult = 0.0;
+    	if (movesHBCheckers(play))
+    		movesHBMult = -0.1;
+    	
+    	weight = (getDistanceTravelled(play) / 24) 
+    			+ hitMult 
+    			+ Math.pow(anchorMult,2) 
+    			+ blockMult 
+    			+ escapeMult
+    			+ largeStackMult
+    			+ Math.pow(movesHBMult,3);    	
+    	
+    	return weight;
+    }
+    
+    private int doesHit(Play play) {
+    	int numOfHits = 0;
+    	for (Move move : play.moves) {
+    		if (move.isHit())
+    			numOfHits++;
+    	}
+    	
+    	return numOfHits;
+    }
+    
+    private boolean makesBlock (Play play) {
+    	Map<Integer, Integer> map = new HashMap<>();
+    	for (Move move : play.moves) {
+    		if (!map.containsKey(move.getToPip())) 
+    			map.put(move.getToPip(), 1);
+    		else
+    			map.replace(move.getToPip(), map.get(move.getToPip()) + 1);
+    	}
+    	
+    	if (map.containsValue(2))
+    		return true;
+    	else
+    		return false;    		
+    }
+    
+    private boolean removesAnchor(Play play) {
+    	Map<Integer, Integer> map = new HashMap<>();
+    	for (Move move : play.moves) {
+    		if (move.getFromPip() <= 24 && move.getFromPip() >= 19) {
+	    		if (!map.containsKey(move.getFromPip())) 
+	    			map.put(move.getFromPip(), 1);
+	    		else
+	    			map.replace(move.getFromPip(), map.get(move.getFromPip()) + 1);
+    		}
+    	}
+    	
+    	if (map.containsValue(2))
+    		return true;
+    	else
+    		return false;
+    }
+    
+    private double getDistanceTravelled(Play play) {
+    	int distance = 0;
+    	for (Move move : play.moves) {
+    		distance += move.getPipDifference();
+    	}
+    	
+    	return distance;
+    }
+    
+    private boolean escapeTrappedChecker(Play play) {
+    	if (!board.lastCheckerInOpponentsInnerBoard((Player) opponent) &&
+    			board.lastCheckerInOpponentsInnerBoard((Player) me)) {
+    		for (Move move : play.moves) {
+    			if (move.getFromPip() <= 24 && move.getFromPip() >= 19) {
+    				if (move.getToPip() < 19)
+    					return true;
+    			}    				
+    		}
+    	}
+    	
+    	return false;
+    }
+    
+    private boolean flagLargeMoves (Play play) {
+    	Map<Integer, Integer> map = new HashMap<>();
+    	for (Move move : play.moves) {
+    		if (!map.containsKey(move.getToPip()))
+    			map.put(move.getToPip(), 1);
+    		else
+    			map.replace(move.getToPip(), map.get(move.getToPip()) + 1);
+    	}
+    	
+    	if (map.containsValue(5))
+    		return true;
+    	else if (map.containsValue(6))
+    		return true;
+    	else if (map.containsValue(7))
+    		return true;
+    	else if (map.containsValue(8))
+    		return true;
+    	else if (map.containsValue(9))
+    		return true;
+    	
+    	return false;
+    }
+    
+    private boolean movesHBCheckers (Play play) {
+    	for (Move move : play.moves) {
+    		if (move.getFromPip() <= 6) {
+    			if (move.getToPip() <= 5)
+    				return true;
+    		}
+    	}
+    	
+    	return false;
     }
 
     public String getDoubleDecision() {
@@ -171,9 +328,7 @@ public class IdkMate implements BotAPI {
         return decision;
     }
     
-    private int getWeight(Play play) {
-    	return 1;
-    }
+    
     
     //Based on the status of p's last checker compared to the opponents last checker,
     //returns the stage of the game from Stage enum.
