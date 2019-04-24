@@ -34,7 +34,7 @@ public class Bot1 implements BotAPI {
 
     public String getDoubleDecision() {
         // Add your code here
-        return "n";
+        return "y";
     }
 
 }

@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdkMate implements BotAPI {
+public class Opponent implements BotAPI {
 	
 	/*
 	 * indicates progression of the game
@@ -25,7 +25,7 @@ public class IdkMate implements BotAPI {
     private MatchAPI match;
     private InfoPanelAPI info;
 
-    IdkMate(PlayerAPI me, PlayerAPI opponent, BoardAPI board, CubeAPI cube, MatchAPI match, InfoPanelAPI info) {
+    Opponent(PlayerAPI me, PlayerAPI opponent, BoardAPI board, CubeAPI cube, MatchAPI match, InfoPanelAPI info) {
         this.me = me;
         this.opponent = opponent;
         this.board = board;
@@ -35,7 +35,7 @@ public class IdkMate implements BotAPI {
     }
 
     public String getName() {
-        return "IdkMate"; // must match the class name
+        return "Opponent"; // must match the class name
     }
     
     private class Duo {
@@ -110,30 +110,15 @@ public class IdkMate implements BotAPI {
     	if (movesHBCheckers(play))
     		movesHBMult = -0.1;
     	
-    	double blotMult = 0.0;
-    	if (makesBlot(play))
-    		blotMult = -0.1;
-    	
     	//less important features are exponentiated
     	
-    	if (getCurrentGameStatus(me).equals(Stage.unopposedbearoff)) {
-    		weight = (numOfBearOffMoves(play)/10);   
-    	} else if (getCurrentGameStatus(me).equals(Stage.opposedbearoff)) {
-    		weight = (numOfBearOffMoves(play)/10)
-    				+ hitMult
-    				+ movesHBMult
-    				+ Math.pow(blotMult,2)
-    				+ Math.pow(largeStackMult,2);
-    	} else {    	
-	    	weight = (getDistanceTravelled(play) / 24) 
-	    			+ hitMult 
-	    			+ blotMult
-	    			+ Math.pow(anchorMult,2) 
-	    			+ blockMult 
-	    			+ escapeMult
-	    			+ largeStackMult
-	    			+ Math.pow(movesHBMult,3);    	
-    	}
+    	weight = (getDistanceTravelled(play) / 24) 
+    			+ hitMult 
+    			+ Math.pow(anchorMult,2) 
+    			+ blockMult 
+    			+ escapeMult
+    			+ largeStackMult
+    			+ Math.pow(movesHBMult,3);    	
     	
     	return weight;
     }
@@ -248,33 +233,6 @@ public class IdkMate implements BotAPI {
     	
     	return false;
     }    
-    
-    //Returns the number of checkers moved to position 0 (bear off) for a given play
-    private double numOfBearOffMoves (Play play) {
-    	int offCounter = 0;
-    	for (Move move : play.moves) {
-    		if (move.getToPip() == 0)
-    			offCounter++;
-    	}
-    	
-    	return offCounter;
-    }
-    
-    //returns true if a given play creates a blot.
-    private boolean makesBlot(Play play) {
-    	Map<Integer,Integer> map = new HashMap<>();
-    	for (Move move : play.moves) {
-    		if (!map.containsKey(move.getToPip()))
-    			map.put(move.getToPip(), 1);
-    		else
-    			map.replace(move.getToPip(), map.get(move.getToPip()) + 1);
-    	}
-    	
-    	if (map.containsValue(1))
-    		return true;
-    	else
-    		return false;
-    }
     
     /*
      * Bot doubling features
