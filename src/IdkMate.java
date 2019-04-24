@@ -3,6 +3,9 @@ import java.util.Map;
 
 public class IdkMate implements BotAPI {
 	
+	/*
+	 * indicates progression of the game
+	 */
 	private enum Stage {
 		contact,
 		opposedbearoff,
@@ -163,10 +166,8 @@ public class IdkMate implements BotAPI {
         		/* winning prob is good and no gammon, double. */
         		else if (getWinningProbability(me) > 0 && getGammonChance(me) <= 0.66)
         			decision = "n";
-    			System.out.println("dec6: " + decision);
     		}
     	}
-    	System.out.println("dec0: " + decision);
         return decision;
     }
     
@@ -191,7 +192,9 @@ public class IdkMate implements BotAPI {
     	return returnThis;   	
     }
     
-    
+    /* Based on certain aspects of the board, this method calculates the circumstancial 
+     * probability of winning for a given player
+     */
     private double getWinningProbability(PlayerAPI thisPlayer) {
     	double probability = 0.0;
     	
@@ -225,7 +228,10 @@ public class IdkMate implements BotAPI {
     	return probability; 
     }
     
-    //to finish
+    /*
+     * Simple method which estimates the probability of a given player to
+     * win by a gammon.
+     */
     private double getGammonChance(PlayerAPI thisPlayer) {
     	double chance = 0;
     	
@@ -284,24 +290,36 @@ public class IdkMate implements BotAPI {
     	return number;
     }
     
+    /*
+     * Returns the number of checker the opposite player has on the bar
+     */
     private double getNumOppBarredCheckers(PlayerAPI thisPlayer) {
     	PlayerAPI otherPlayer = (thisPlayer.getId() == 0) ? opponent : me;
     	return board.getNumCheckers(otherPlayer.getId(), 25);
     }
     
+    /*
+     * Returns the difference between the number of beared of checkers between
+     * the 2 players
+     */
     private double getBearedOffDiff (PlayerAPI thisPlayer) {
     	PlayerAPI otherPlayer = (thisPlayer.getId() == 0) ? opponent : me;
     	return (board.getNumCheckers(otherPlayer.getId(), 0)) - (board.getNumCheckers(thisPlayer.getId(), 0));
 
     }
     
+    /*
+     * Returns true if both of the current players are 2 points away from winning the match
+     */
     private boolean ifTwoOffWinning() {
     	return ((me.getScore() + 2) == match.getLength() && (opponent.getScore() + 2) == match.getLength());
     }
     
     
-    //utility function which makes winning probability less biased towards
-    //end stages of the game
+    /*
+     * utility function which makes winning probability less biased 
+     * towards the end stages of the game
+     */
     private int getHandicap(PlayerAPI thisPlayer) {
     	PlayerAPI otherPlayer = (thisPlayer.getId() == 0) ? opponent : me;
     	int handicap = 0;
