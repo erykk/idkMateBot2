@@ -60,7 +60,8 @@ public class IdkMate implements BotAPI {
     		thisMap.put(new Duo(++counter,play), getWeight(play));
     	}
     	
-    	Duo res = thisMap.entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
+    	//returns the Duo associated with the maximum values of the map
+    	Duo res = thisMap.entrySet().stream().max((e1, e2) -> e1.getValue() > e2.getValue() ? 1 : -1).get().getKey();
     	command = Integer.toString(res.id);
     	System.out.println(thisMap.get(res));
     	
@@ -109,6 +110,8 @@ public class IdkMate implements BotAPI {
     	if (movesHBCheckers(play))
     		movesHBMult = -0.1;
     	
+    	//less important features are exponentiated
+    	
     	weight = (getDistanceTravelled(play) / 24) 
     			+ hitMult 
     			+ Math.pow(anchorMult,2) 
@@ -120,6 +123,11 @@ public class IdkMate implements BotAPI {
     	return weight;
     }
     
+    /*
+     * Bot movement features
+     */
+    
+    //returns the number of hits a given move will perform
     private int doesHit(Play play) {
     	int numOfHits = 0;
     	for (Move move : play.moves) {
@@ -130,6 +138,7 @@ public class IdkMate implements BotAPI {
     	return numOfHits;
     }
     
+    //returns true if a give move will place 2 checkers on an empty pip
     private boolean makesBlock (Play play) {
     	Map<Integer, Integer> map = new HashMap<>();
     	for (Move move : play.moves) {
@@ -145,6 +154,7 @@ public class IdkMate implements BotAPI {
     		return false;    		
     }
     
+    //returns true if a given move will remove an "anchor" (2 checkers in opponents home)
     private boolean removesAnchor(Play play) {
     	Map<Integer, Integer> map = new HashMap<>();
     	for (Move move : play.moves) {
@@ -162,6 +172,7 @@ public class IdkMate implements BotAPI {
     		return false;
     }
     
+    //returns the total pip difference for all moves of a given play
     private double getDistanceTravelled(Play play) {
     	int distance = 0;
     	for (Move move : play.moves) {
@@ -171,6 +182,7 @@ public class IdkMate implements BotAPI {
     	return distance;
     }
     
+    //returns true if a give play will remove a "trapped" checker from the opponents Home board
     private boolean escapeTrappedChecker(Play play) {
     	if (!board.lastCheckerInOpponentsInnerBoard((Player) opponent) &&
     			board.lastCheckerInOpponentsInnerBoard((Player) me)) {
@@ -185,6 +197,7 @@ public class IdkMate implements BotAPI {
     	return false;
     }
     
+    //returns true if a move will stack a large number of checkers onto 1 pip
     private boolean flagLargeMoves (Play play) {
     	Map<Integer, Integer> map = new HashMap<>();
     	for (Move move : play.moves) {
@@ -208,22 +221,27 @@ public class IdkMate implements BotAPI {
     	return false;
     }
     
+    //returns true if a given move only moves checkers forward in the players homeboard without a hit
     private boolean movesHBCheckers (Play play) {
     	for (Move move : play.moves) {
     		if (move.getFromPip() <= 6) {
     			if (move.getToPip() <= 5)
-    				return true;
+    				if (!move.isHit())
+    					return true;
     		}
     	}
     	
     	return false;
-    }
+    }    
+    
+    /*
+     * Bot doubling features
+     */
 
     public String getDoubleDecision() {
     	
     	String decision = "n"; 
     	
-    	//double probability = getWinningProbability(me);
     	
     	/**
     	 * Cube not owned
