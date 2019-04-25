@@ -64,13 +64,13 @@ public class Match implements MatchAPI {
         }
 
         public boolean canDouble(Player player) {
-            if (crawford || cube.getValue()<matchLength-player.getScore()) {
+            if (!crawford && cube.getValue()<matchLength-player.getScore()) {
                 return true;
             } else {
                 return false;
             }
         }
-
+        
         public void reset() {
             matchLength=0;
             players.reset();

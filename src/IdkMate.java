@@ -52,8 +52,6 @@ public class IdkMate implements BotAPI {
     	
     	String command = "1";
     	int counter = 0;
-    	
-    	this.getWinningProbability(me);
 
     	Map <Duo, Double> thisMap = new HashMap<>();
     	for (Play play : possiblePlays) {
