@@ -1,5 +1,7 @@
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class IdkMate implements BotAPI {
 	
@@ -112,6 +114,10 @@ public class IdkMate implements BotAPI {
     	if (makesBlot(play))
     		blotMult = -0.125;
     	
+    	double clusterMult = 0.0;
+        if(makesCluster(play))
+        	clusterMult = 0.2;
+    	
     	//less important features are exponentiated
     	
     	if (getCurrentGameStatus(me).equals(Stage.unopposedbearoff)) {
@@ -124,13 +130,15 @@ public class IdkMate implements BotAPI {
     				+ Math.pow(largeStackMult,2);
     	} else {    	
 	    	weight = (getDistanceTravelled(play) / 24) 
-	    			+ hitMult 
+	    			+ (hitMult*0.9) 
 	    			+ (blotMult*1.5)
 	    			+ Math.pow(anchorMult,2) 
 	    			+ blockMult 
 	    			+ escapeMult
 	    			+ largeStackMult
-	    			+ Math.pow(movesHBMult,3);    	
+	    			+ Math.pow(movesHBMult,3)
+	    			+ clusterMult
+	    			;    	
     	}
     	
     	return weight;
@@ -139,6 +147,30 @@ public class IdkMate implements BotAPI {
     /*
      * Bot movement features
      */
+    
+    //Returns true if there are already checkers on either side of a planned move. 
+    private boolean makesCluster(Play play) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for (Move move : play.moves) {
+            if (!map.containsKey(move.getToPip()))
+            	map.put(move.getToPip(), 1);
+            else
+            	map.replace(move.getToPip(), map.get(move.getToPip()) + 1);               
+        }
+        
+        Iterator<Entry<Integer, Integer>> it = map.entrySet().iterator();
+        while (it.hasNext()) {
+        	Map.Entry<Integer, Integer> pair = (Map.Entry) it.next();
+        	if (pair.getValue() == 2) {
+        		if (pair.getKey() - 1 > 0 && pair.getKey() + 1 < 25) {
+        			if (board.getNumCheckers(me.getId(), pair.getKey() - 1) > 1
+        					&& board.getNumCheckers(me.getId(), pair.getKey() + 1) > 1)
+        				return true;
+        		}
+        	}
+        }
+        return false;
+    }
     
     //returns the number of hits a given move will perform
     private int doesHit(Play play) {
@@ -153,18 +185,18 @@ public class IdkMate implements BotAPI {
     
     //returns true if a give move will place 2 checkers on an empty pip
     private boolean makesBlock (Play play) {
-    	Map<Integer, Integer> map = new HashMap<>();
-    	for (Move move : play.moves) {
-    		if (!map.containsKey(move.getToPip())) 
-    			map.put(move.getToPip(), 1);
-    		else
-    			map.replace(move.getToPip(), map.get(move.getToPip()) + 1);
-    	}
-    	
-    	if (map.containsValue(2))
-    		return true;
-    	else
-    		return false;    		
+        Map<Integer, Integer> map = new HashMap<>();
+        for (Move move : play.moves) {
+            if (!map.containsKey(move.getToPip()))
+                map.put(move.getToPip(), 1);
+            else
+                map.replace(move.getToPip(), map.get(move.getToPip()) + 1);
+        }
+       
+        if (map.containsValue(2))
+            return true;
+        else
+            return false;          
     }
     
     //returns true if a given move will remove an "anchor" (2 checkers in opponents home)
